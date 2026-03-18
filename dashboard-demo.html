@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ISS Dashboard - Internal Tool</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, Arial, sans-serif; background: #0a0a0a; color: #fff; padding: 30px; }
+    h1 { font-size: 18px; margin-bottom: 20px; font-weight: 500; letter-spacing: -0.5px; }
+    h2 { font-size: 11px; margin-bottom: 10px; color: #444; text-transform: uppercase; letter-spacing: 1px; }
+    
+    .btn { display: inline-block; padding: 8px 14px; background: #fff; color: #000; border: none; cursor: pointer; font-size: 11px; margin-right: 6px; }
+    .btn:hover { opacity: 0.9; }
+    .btn-outline { background: transparent; border: 1px solid #333; color: #ccc; }
+    .btn-outline:hover { border-color: #666; color: #fff; }
+    .btn-small { padding: 6px 10px; font-size: 10px; }
+    .btn-action { background: transparent; border: 1px solid #333; color: #888; }
+    .btn-action:hover { border-color: #555; color: #fff; }
+    
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #1a1a1a; }
+    .stats { display: flex; gap: 40px; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 24px; font-weight: 300; }
+    .stat .label { font-size: 9px; color: #444; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+    
+    .leads-list { display: grid; gap: 8px; }
+    .lead { background: #111; border: 1px solid #1a1a1a; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; }
+    .lead:hover { border-color: #252525; }
+    .lead-info { flex: 1; display: flex; gap: 30px; align-items: center; }
+    .lead .company { font-size: 13px; font-weight: 500; min-width: 140px; }
+    .lead .meta { font-size: 11px; color: #555; min-width: 180px; }
+    .lead .reason { font-size: 11px; color: #666; font-style: italic; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lead .score { font-size: 16px; font-weight: 500; color: #f4d03f; min-width: 50px; text-align: center; }
+    .lead .score-label { font-size: 8px; color: #444; text-transform: uppercase; display: block; margin-top: 2px; }
+    
+    .lead-actions { display: flex; gap: 4px; align-items: center; }
+    .status { padding: 4px 10px; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; border-radius: 2px; min-width: 70px; text-align: center; }
+    .status-new { background: #1a1a1a; color: #666; }
+    .status-contacted { background: #1a221a; color: #5a5; }
+    .status-replied { background: #221a22; color: #a5a; }
+    .status-qualified { background: #1a2222; color: #5aa; }
+    .status-closed { background: #1a1a22; color: #55a; }
+    .status-rejected { background: #221a1a; color: #a55; }
+    
+    .outreach-panel { background: #111; border: 1px solid #1a1a1a; padding: 20px; margin-top: 20px; display: none; }
+    .outreach-panel.show { display: block; }
+    .outreach-panel h2 { margin-bottom: 10px; }
+    .outreach-panel textarea { width: 100%; height: 120px; background: #0a0a0a; border: 1px solid #222; color: #fff; padding: 12px; font-size: 12px; margin: 10px 0; resize: none; font-family: inherit; }
+    .outreach-panel .copy { font-size: 11px; color: #555; margin-left: 10px; }
+    
+    .form-add { background: #111; border: 1px solid #1a1a1a; padding: 15px; margin-bottom: 20px; }
+    .form-add input { width: 100%; padding: 10px; margin-bottom: 8px; background: #0a0a0a; border: 1px solid #222; color: #fff; font-size: 12px; }
+    .form-add .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    
+    .note { background: #111; padding: 12px; margin-bottom: 20px; font-size: 10px; color: #444; border-left: 2px solid #333; }
+    .section { margin-bottom: 25px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>ISS Dashboard · Internal</h1>
+  <div class="stats">
+    <div class="stat"><div class="num" id="totalCount">0</div><div class="label">Total Leads</div></div>
+    <div class="stat"><div class="num" id="newCount">0</div><div class="label">New</div></div>
+    <div class="stat"><div class="num" id="scoreCount">0</div><div class="label">Fit Score</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <h2>Lead Management</h2>
+    <div>
+      <button class="btn btn-outline btn-small" onclick="generateLeads()">+ Add Demo</button>
+      <button class="btn btn-outline btn-small" onclick="exportCSV()">Export</button>
+    </div>
+  </div>
+  
+  <div class="leads-list" id="leadsList">
+    <div style="color:#444;padding:20px;text-align:center;font-size:11px;">Loading leads...</div>
+  </div>
+</div>
+
+<div class="outreach-panel" id="outreachPanel">
+  <h2>Outreach Message</h2>
+  <textarea id="outreachText"></textarea>
+  <button class="btn btn-small" onclick="copyOutreach()">Copy</button>
+  <span class="copy" id="copyStatus"></span>
+  <button class="btn btn-outline btn-small" style="float:right" onclick="closeOutreach()">Close</button>
+</div>
+
+<div class="note">
+  Internal Tool · ISS Governance · Do not share externally
+</div>
+
+<script>
+let leadsData = [];
+
+function loadLeads() {
+  try {
+    const stored = localStorage.getItem('iss_leads');
+    leadsData = stored ? JSON.parse(stored) : [];
+    renderLeads();
+  } catch (e) {
+    leadsData = [];
+    renderLeads();
+  }
+}
+
+function saveLeads() {
+  localStorage.setItem('iss_leads', JSON.stringify(leadsData));
+}
+
+function calculateScore(lead) {
+  let score = 0;
+  if (lead.size === '10-25') score += 2;
+  else if (lead.size === '25-50') score += 3;
+  else if (lead.size === '50-100') score += 2;
+  const painWords = ['chaos', 'problem', 'unclear', 'confusion', 'friction', 'scaling', 'growth', 'coordination'];
+  painWords.forEach(w => { if (lead.reason.toLowerCase().includes(w)) score += 2; });
+  const target = ['SaaS', 'E-Commerce', 'Agency', 'Tech', 'FinTech'];
+  if (target.includes(lead.industry)) score += 2;
+  return Math.min(score, 15);
+}
+
+function generateOutreach(lead) {
+  const msgs = [
+    `Hello ${lead.contact || 'there'},
+
+While reviewing companies in the ${lead.industry} space, one pattern stood out.
+
+At your current stage (${lead.size}), businesses often run into: ${lead.reason}
+
+This usually doesn't show immediately, but creates friction in scaling.
+
+We specialize in identifying these structural gaps.
+
+If you're open, I can share a short breakdown.
+
+Best,
+Sinan`,
+    `Hi ${lead.contact || 'there'},
+
+Most organizations optimize outcomes. Few understand the structure that produces them.
+
+In ${lead.industry}, at ${lead.size} scale, we typically see: ${lead.reason}
+
+This is our focus at ISS Governance.
+
+Let me know if this resonates.
+
+Best,
+Sinan`
+  ];
+  return msgs[Math.floor(Math.random() * msgs.length)];
+}
+
+function renderLeads() {
+  document.getElementById('totalCount').textContent = leadsData.length;
+  document.getElementById('newCount').textContent = leadsData.filter(l => l.status === 'new').length;
+  const totalScore = leadsData.reduce((sum, l) => sum + (l.score || 0), 0);
+  document.getElementById('scoreCount').textContent = totalScore;
+  
+  const list = document.getElementById('leadsList');
+  if (leadsData.length === 0) {
+    list.innerHTML = '<div style="color:#444;padding:20px;text-align:center;font-size:11px;">No leads. Click "+ Add Demo" to start.</div>';
+    return;
+  }
+  
+  leadsData.sort((a, b) => (b.score || 0) - (a.score || 0));
+  
+  list.innerHTML = leadsData.map(lead => `
+    <div class="lead">
+      <div class="lead-info">
+        <div class="company">${lead.company}</div>
+        <div class="meta">${lead.industry || '—'} · ${lead.size || '—'} · ${lead.contact || '—'}</div>
+        <div class="reason">${lead.reason || '—'}</div>
+        <div class="score">${lead.score || 0}<span class="score-label">pts</span></div>
+      </div>
+      <div class="lead-actions">
+        <span class="status status-${lead.status || 'new'}">${lead.status || 'new'}</span>
+        <button class="btn-action btn-small" onclick="showOutreach('${lead.id}')" title="Generate Message">Msg</button>
+        <button class="btn-action btn-small" onclick="setStatus('${lead.id}', 'new')">New</button>
+        <button class="btn-action btn-small" onclick="setStatus('${lead.id}', 'contacted')">Sent</button>
+        <button class="btn-action btn-small" onclick="setStatus('${lead.id}', 'replied')">Reply</button>
+        <button class="btn-action btn-small" onclick="setStatus('${lead.id}', 'qualified')">Qual</button>
+        <button class="btn-action btn-small" onclick="setStatus('${lead.id}', 'closed')">Done</button>
+        <button class="btn-action btn-small" onclick="deleteLead('${lead.id}')" title="Delete">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function generateLeads() {
+  const samples = [
+    { company: 'CloudScale GmbH', industry: 'SaaS', size: '25-50', reason: 'Scaling chaos - coordination breaking', contact: 'CEO' },
+    { company: 'Vienna Digital', industry: 'Agency', size: '15-30', reason: 'Role confusion after rapid growth', contact: 'MD' },
+    { company: 'Alpine Logistics', industry: 'Logistics', size: '50-100', reason: 'Multi-team coordination issues', contact: 'Ops Lead' },
+    { company: 'ShopTech Wien', industry: 'E-Commerce', size: '30-60', reason: 'Process standardization needed', contact: 'CEO' },
+    { company: 'FinanceFlow', industry: 'FinTech', size: '20-40', reason: 'Governance structure for scaling', contact: 'Founder' }
+  ];
+  
+  samples.forEach(s => {
+    const lead = { id: Date.now() + Math.random(), ...s, status: 'new', created: new Date().toISOString() };
+    lead.score = calculateScore(lead);
+    leadsData.push(lead);
+  });
+  
+  saveLeads();
+  renderLeads();
+}
+
+function setStatus(id, status) {
+  const idx = leadsData.findIndex(l => l.id == id);
+  if (idx > -1) {
+    leadsData[idx].status = status;
+    saveLeads();
+    renderLeads();
+  }
+}
+
+function deleteLead(id) {
+  leadsData = leadsData.filter(l => l.id != id);
+  saveLeads();
+  renderLeads();
+}
+
+function showOutreach(id) {
+  const lead = leadsData.find(l => l.id == id);
+  if (!lead) return;
+  document.getElementById('outreachText').value = generateOutreach(lead);
+  document.getElementById('outreachPanel').classList.add('show');
+}
+
+function copyOutreach() {
+  const text = document.getElementById('outreachText');
+  text.select();
+  document.execCommand('copy');
+  document.getElementById('copyStatus').textContent = '✓ Copied';
+  setTimeout(() => document.getElementById('copyStatus').textContent = '', 2000);
+}
+
+function closeOutreach() {
+  document.getElementById('outreachPanel').classList.remove('show');
+}
+
+function exportCSV() {
+  const csv = 'Company,Industry,Size,Contact,Reason,Score,Status\n' + 
+    leadsData.map(l => `${l.company},${l.industry},${l.size},${l.contact},"${l.reason}",${l.score},${l.status}`).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'iss-leads.csv';
+  a.click();
+}
+
+loadLeads();
+</script>
+
+</body>
+</html>
