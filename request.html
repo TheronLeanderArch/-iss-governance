@@ -79,7 +79,7 @@ document.getElementById('requestForm').addEventListener('submit', function(e) {
   var formData = new FormData(this);
   var key = formData.get('access_key');
   
-  fetch('https://web3form.io/submit', {
+  fetch('https://api.web3forms.com/submit', {
     method: 'POST',
     body: formData
   })
